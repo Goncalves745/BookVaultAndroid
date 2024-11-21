@@ -1,0 +1,10 @@
+<resources>
+    <string name="app_name">BookVault</string>
+    <string name="HomePage">Home</string>
+    <string name="Books">Books\n</string>
+    <string name="Settings">Settings</string>
+    <string name="BookVault">BookVault</string>
+    <string name="add_book">Add</string>
+    <string name="user">User</string>
+    <string name="back">back</string>
+</resources>
