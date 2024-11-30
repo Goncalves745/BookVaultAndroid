@@ -1,5 +1,6 @@
 package com.example.bookvault
 
+import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -20,6 +21,19 @@ import androidx.navigation.NavController
 import androidx.compose.material.Icon
 import androidx.compose.material.IconButton
 import androidx.compose.material.Text
+
+import androidx.compose.foundation.Image
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.unit.dp
+import androidx.lifecycle.viewmodel.compose.viewModel
+import coil.compose.rememberImagePainter
+import com.example.bookvault.network.Book
+import com.example.bookvault.viewmodel.BookViewModel
 
 
 // App Bar for the Home Screen
@@ -161,20 +175,89 @@ fun UserScreen(navController: NavController) {
 }
 
 @Composable
-fun AddBookScreen(navController: NavController) {
-    Box(modifier = Modifier.fillMaxSize()) {
+fun AddBookScreen(navController: NavController, viewModel: BookViewModel = viewModel()) {
+    var query by remember { mutableStateOf("") }
+    val books by viewModel.books.collectAsState()
+
+    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         // Back button
-        IconButton(
-            onClick = { navController.popBackStack() },
-            modifier = Modifier
-                .align(Alignment.TopStart)
-                .padding(16.dp)
-        ) {
+        IconButton(onClick = { navController.popBackStack() }) {
             Icon(
-                imageVector = Icons.Default.ArrowBack,
-                contentDescription = stringResource(id = R.string.back),
-                tint = Color.Black
+                imageVector = androidx.compose.material.icons.Icons.Default.ArrowBack,
+                contentDescription = "Back"
             )
         }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // Search bar with a search button
+        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            TextField(
+                value = query,
+                onValueChange = { query = it },
+                label = { Text("Search Books") },
+                modifier = Modifier.weight(1f)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Button(onClick = { viewModel.searchBooks(query) }) {
+                Text("Search")
+            }
+        }
+
+        Spacer(modifier = Modifier.height(16.dp))
+
+        // List of books
+        LazyColumn {
+            items(books) { book ->
+                BookItem(book = book, onClick = { selectedBook ->
+                    // This is where you navigate to the BookPageScreen with the book ID
+                    val bookId = selectedBook.key
+                    if (bookId.isNotEmpty()) {
+                        navController.navigate("bookPage/$bookId")
+                    } else {
+                        Log.e("Navigation", "Invalid or empty bookId, cannot navigate")
+                    }
+                })
+            }
+        }
+    }
+}
+
+@Composable
+fun BookItem(book: Book, onClick: (Book) -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+            .clickable { onClick(book) } // Trigger navigation when clicked
+    ) {
+        val coverUrl = book.cover_i?.let { "https://covers.openlibrary.org/b/id/$it-M.jpg" }
+        Image(
+            painter = rememberImagePainter(data = coverUrl),
+            contentDescription = book.title,
+            modifier = Modifier.size(80.dp)
+        )
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        Column(modifier = Modifier.align(Alignment.CenterVertically)) {
+            Text(text = book.title ?: "Unknown Title", fontWeight = FontWeight.Bold)
+            Text(text = "Author(s): ${book.author_name?.joinToString() ?: "Unknown"}")
+            Text(text = "First Published: ${book.first_publish_year ?: "N/A"}")
+        }
+    }
+}
+
+@Composable
+fun BookPageScreen(bookId: String) {
+    // Use the bookId to fetch additional details if needed
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text(text = "Book Details for $bookId", fontWeight = FontWeight.Bold)
+        // Display more detailed information about the book here
     }
 }

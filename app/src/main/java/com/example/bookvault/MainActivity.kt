@@ -1,6 +1,7 @@
 package com.example.bookvault
 
 import android.os.Bundle
+import android.util.Log
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -33,10 +34,12 @@ import androidx.compose.ui.res.colorResource
 import androidx.compose.ui.res.painterResource
 import androidx.navigation.NavController
 import androidx.navigation.NavHostController
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -70,15 +73,15 @@ fun ProgramaPrincipal() {
 
 @Composable
 fun AppNavigation(navController: NavHostController) {
-    NavHost(navController, startDestination = Destino.Ecra01.route) {
-        composable(Destino.Ecra01.route) {
-            Ecra01(
+    NavHost(navController, startDestination = Destino.HomePageScreen.route) {
+        composable(Destino.HomePageScreen.route) {
+            HomePageScreen(
                 onAddBookClick = { navController.navigate(Destino.AddBook.route) },
                 onUserClick = { navController.navigate(Destino.UserScreen.route) }
             )
         }
-        composable(Destino.Ecra02.route) {
-            Ecra02()
+        composable(Destino.BooksScreen.route) {
+            BooksScreen()
         }
         composable(Destino.SettingsScreen.route) {
             SettingsScreen()
@@ -90,6 +93,14 @@ fun AppNavigation(navController: NavHostController) {
             UserScreen(navController = navController)
         }
 
+        // Updated navigation for BookPage
+        composable(
+            route = Destino.BookPage.route,
+            arguments = listOf(navArgument("bookId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val bookId = backStackEntry.arguments?.getString("bookId") ?: ""
+            BookPageScreen(bookId = bookId)
+        }
     }
 }
 

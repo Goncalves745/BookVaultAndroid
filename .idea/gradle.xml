@@ -9,8 +9,8 @@
         <option name="gradleJvm" value="#GRADLE_LOCAL_JAVA_HOME" />
         <option name="modules">
           <set>
-            <option value="$PROJECT_DIR$/../../Computação Movel/BookVault" />
-            <option value="$PROJECT_DIR$/../../Computação Movel/BookVault/app" />
+            <option value="$PROJECT_DIR$/../../Computação Movel/BookVaultAndroid" />
+            <option value="$PROJECT_DIR$/../../Computação Movel/BookVaultAndroid/app" />
           </set>
         </option>
         <option name="resolveExternalAnnotations" value="false" />

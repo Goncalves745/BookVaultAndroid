@@ -9,6 +9,11 @@ sealed class Destino(val route: String, val icon: Int, val title: String) {
     object UserScreen : Destino(route = "user", icon = R.drawable.baseline_account_circle_24, title = "User")
     object AddBook : Destino(route = "addBook", icon = R.drawable.baseline_add_24, title = "Add Book")
 
+    // Update this object to support a dynamic route for the book page
+    object BookPage : Destino(route = "bookPage/{bookId}", icon = R.drawable.baseline_add_24, title = "Book Page")
+
+
+
     companion object {
         val toList = listOf(HomePageScreen, BooksScreen, SettingsScreen)
     }

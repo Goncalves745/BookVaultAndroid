@@ -67,4 +67,11 @@ dependencies {
 
     val composeMaterialVersion = "1.7.3"
     implementation("androidx.compose.material:material:$composeMaterialVersion")
+
+    // Retrofit
+    implementation ("com.squareup.retrofit2:retrofit:2.9.0")
+    implementation ("com.squareup.retrofit2:converter-gson:2.9.0")
+
+    // Lifecycle ViewModel
+    implementation ("androidx.lifecycle:lifecycle-runtime-ktx:2.6.1")
 }
