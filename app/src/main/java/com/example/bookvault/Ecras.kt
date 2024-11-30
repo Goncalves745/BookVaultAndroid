@@ -34,6 +34,15 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberImagePainter
 import com.example.bookvault.network.Book
 import com.example.bookvault.viewmodel.BookViewModel
+import java.net.URLEncoder
+import java.nio.charset.StandardCharsets
+
+
+// Update createRoute function
+fun createRoute(bookId: String): String {
+    val encodedBookId = URLEncoder.encode(bookId, StandardCharsets.UTF_8.toString())
+    return "bookPage/$encodedBookId"
+}
 
 
 // App Bar for the Home Screen
@@ -175,53 +184,78 @@ fun UserScreen(navController: NavController) {
 }
 
 @Composable
-fun AddBookScreen(navController: NavController, viewModel: BookViewModel = viewModel()) {
+fun AddBookScreen(navController: NavController,viewModel: BookViewModel = viewModel()) {
     var query by remember { mutableStateOf("") }
     val books by viewModel.books.collectAsState()
-
+    var selectedBook by remember { mutableStateOf<Book?>(null) }
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        // Back button
-        IconButton(onClick = { navController.popBackStack() }) {
-            Icon(
-                imageVector = androidx.compose.material.icons.Icons.Default.ArrowBack,
-                contentDescription = "Back"
-            )
-        }
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        // Search bar with a search button
-        Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+        // If a book is selected, show the book details, else show the search UI
+        if (selectedBook == null) {
+            // Search UI
             TextField(
                 value = query,
                 onValueChange = { query = it },
                 label = { Text("Search Books") },
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.fillMaxWidth()
             )
-            Spacer(modifier = Modifier.width(8.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             Button(onClick = { viewModel.searchBooks(query) }) {
                 Text("Search")
             }
-        }
+            Spacer(modifier = Modifier.height(16.dp))
 
-        Spacer(modifier = Modifier.height(16.dp))
+            // List of books
+            LazyColumn {
+                items(books) { book ->
+                    BookItem(book = book, onClick = { selectedBook = book })
+                }
+            }
+        } else {
+            // Book Details UI
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                val book = selectedBook!!
 
-        // List of books
-        LazyColumn {
-            items(books) { book ->
-                BookItem(book = book, onClick = { selectedBook ->
-                    // This is where you navigate to the BookPageScreen with the book ID
-                    val bookId = selectedBook.key
-                    if (bookId.isNotEmpty()) {
-                        navController.navigate("bookPage/$bookId")
-                    } else {
-                        Log.e("Navigation", "Invalid or empty bookId, cannot navigate")
-                    }
-                })
+                Text(text = book.title ?: "Unknown Title", fontWeight = FontWeight.Bold, fontSize = 22.sp)
+                Spacer(modifier = Modifier.height(8.dp))
+                val coverUrl = book.cover_i?.let { "https://covers.openlibrary.org/b/id/$it-M.jpg" }
+                Image(
+                    painter = rememberImagePainter(data = coverUrl),
+                    contentDescription = book.title,
+                    modifier = Modifier.size(450.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(text = "Author(s): ${book.author_name?.joinToString() ?: "Unknown"}")
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(text = "First Published: ${book.first_publish_year ?: "N/A"}")
+
+                Spacer(modifier = Modifier.height(24.dp))
+
+                // Add to Library Button
+                Button(onClick = {
+//                    viewModel.addBookToDatabase(book)
+                    // Clear selection after adding the book
+                    selectedBook = null
+                }) {
+                    Text("Add to Library")
+                }
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Back button to return to search
+                Button(onClick = { selectedBook = null }) {
+                    Text("Back to Search")
+                }
             }
         }
     }
 }
+
+
 
 @Composable
 fun BookItem(book: Book, onClick: (Book) -> Unit) {
@@ -248,16 +282,3 @@ fun BookItem(book: Book, onClick: (Book) -> Unit) {
     }
 }
 
-@Composable
-fun BookPageScreen(bookId: String) {
-    // Use the bookId to fetch additional details if needed
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Text(text = "Book Details for $bookId", fontWeight = FontWeight.Bold)
-        // Display more detailed information about the book here
-    }
-}

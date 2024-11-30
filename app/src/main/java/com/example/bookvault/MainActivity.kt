@@ -40,6 +40,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
+import java.net.URLDecoder
+import java.nio.charset.StandardCharsets
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -92,30 +94,18 @@ fun AppNavigation(navController: NavHostController) {
         composable(Destino.UserScreen.route) {
             UserScreen(navController = navController)
         }
-
-        // Updated navigation for BookPage
-        composable(
-            route = Destino.BookPage.route,
-            arguments = listOf(navArgument("bookId") { type = NavType.StringType })
-        ) { backStackEntry ->
-            val bookId = backStackEntry.arguments?.getString("bookId") ?: ""
-            BookPageScreen(bookId = bookId)
-        }
     }
 }
 
 @Composable
 fun BottomNavigationBar(navController: NavController, appItems: List<Destino>) {
-    BottomNavigation(backgroundColor = colorResource(id = R.color.bluegrey),contentColor = Color.White) {
+    BottomNavigation(backgroundColor = colorResource(id = R.color.bluegrey), contentColor = Color.White) {
         val navBackStackEntry by navController.currentBackStackEntryAsState()
         val currentRoute = navBackStackEntry?.destination?.route
         appItems.forEach { item ->
             BottomNavigationItem(
-                icon = { Icon(painterResource(id = item.icon), contentDescription = item.title, tint=if(currentRoute == item.route) Color.White else Color.White.copy(.4F)) },
-                label = { Text(text = item.title, color = if(currentRoute == item.route) Color.White else Color.White.copy(.4F)) },
-                selectedContentColor = Color.White, // esta instrução devia funcionar para o efeito (animação), para o ícone e para a cor do texto, mas só funciona para o efeito
-                unselectedContentColor = Color.White.copy(0.4f), // esta instrução não funciona, por isso resolve-se acima no 'tint' do icon e na 'color' da label
-                alwaysShowLabel = true, // colocar 'false' significa que o texto só aparece debaixo do ícone selecionado (em vez de debaixo de todos)
+                icon = { Icon(painterResource(id = item.icon), contentDescription = item.title, tint = if (currentRoute == item.route) Color.White else Color.White.copy(.4F)) },
+                label = { Text(text = item.title, color = if (currentRoute == item.route) Color.White else Color.White.copy(.4F)) },
                 selected = currentRoute == item.route,
                 onClick = {
                     navController.navigate(item.route) {
