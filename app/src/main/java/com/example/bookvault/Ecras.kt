@@ -1,6 +1,5 @@
 package com.example.bookvault
 
-import android.util.Log
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
@@ -18,31 +17,16 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
-import androidx.compose.material.Icon
-import androidx.compose.material.IconButton
-import androidx.compose.material.Text
-
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
-import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberImagePainter
 import com.example.bookvault.network.Book
 import com.example.bookvault.viewmodel.BookViewModel
-import java.net.URLEncoder
-import java.nio.charset.StandardCharsets
-
-
-// Update createRoute function
-fun createRoute(bookId: String): String {
-    val encodedBookId = URLEncoder.encode(bookId, StandardCharsets.UTF_8.toString())
-    return "bookPage/$encodedBookId"
-}
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 
 
 // App Bar for the Home Screen
@@ -183,78 +167,165 @@ fun UserScreen(navController: NavController) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class) // or ExperimentalMaterialApi, depending on the API you're using
 @Composable
-fun AddBookScreen(navController: NavController,viewModel: BookViewModel = viewModel()) {
+fun AddBookScreen(navController: NavController, viewModel: BookViewModel = viewModel()) {
     var query by remember { mutableStateOf("") }
     val books by viewModel.books.collectAsState()
     var selectedBook by remember { mutableStateOf<Book?>(null) }
-    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
-        // If a book is selected, show the book details, else show the search UI
-        if (selectedBook == null) {
-            // Search UI
-            TextField(
-                value = query,
-                onValueChange = { query = it },
-                label = { Text("Search Books") },
-                modifier = Modifier.fillMaxWidth()
-            )
-            Spacer(modifier = Modifier.height(8.dp))
-            Button(onClick = { viewModel.searchBooks(query) }) {
-                Text("Search")
-            }
-            Spacer(modifier = Modifier.height(16.dp))
+    var review by remember { mutableStateOf("") }
 
-            // List of books
-            LazyColumn {
-                items(books) { book ->
-                    BookItem(book = book, onClick = { selectedBook = book })
-                }
+    Scaffold(
+        topBar = {
+            if (selectedBook != null) {
+                TopAppBar(
+                    title = {
+                        Text(
+                            text = "Book Details",
+                            color = Color.White // Set the desired color here
+                        )
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(
+                                imageVector = Icons.Default.ArrowBack,
+                                contentDescription = "Back to Search",
+                                tint = Color.White // Set the icon color to white
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.smallTopAppBarColors(
+                        containerColor = Color(0xFF222831) // Set your desired background color
+                    )
+                )
+            } else {
+                TopAppBar(
+                    title = {
+                        Text(text = "Search Books", color = Color.White)
+                    },
+                    navigationIcon = {
+                        IconButton(onClick = { navController.popBackStack() }) {
+                            Icon(
+                                imageVector = Icons.Default.ArrowBack,
+                                contentDescription = "Back to Search",
+                                tint = Color.White // Set the icon color to white
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.smallTopAppBarColors(
+                        containerColor = Color(0xFF222831) // Set your desired background color
+                    )
+                )
             }
-        } else {
-            // Book Details UI
+        }
+    ) { padding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFF222831))
+                .padding(padding)
+        ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(16.dp),
-                horizontalAlignment = Alignment.CenterHorizontally
+                    .padding(padding)
+                    .padding(16.dp)
             ) {
-                val book = selectedBook!!
+                if (selectedBook == null) {
+                    // Search UI
+                    TextField(
+                        value = query,
+                        onValueChange = { query = it },
+                        label = {
+                            Text(
+                                text = "Search Books",
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Button(onClick = { viewModel.searchBooks(query) }) {
+                        Text(text = "Search",color = Color.White)
+                    }
+                    Spacer(modifier = Modifier.height(16.dp))
 
-                Text(text = book.title ?: "Unknown Title", fontWeight = FontWeight.Bold, fontSize = 22.sp)
-                Spacer(modifier = Modifier.height(8.dp))
-                val coverUrl = book.cover_i?.let { "https://covers.openlibrary.org/b/id/$it-M.jpg" }
-                Image(
-                    painter = rememberImagePainter(data = coverUrl),
-                    contentDescription = book.title,
-                    modifier = Modifier.size(450.dp)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "Author(s): ${book.author_name?.joinToString() ?: "Unknown"}")
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(text = "First Published: ${book.first_publish_year ?: "N/A"}")
+                    // List of books
+                    LazyColumn {
+                        items(books) { book ->
+                            BookItem(book = book, onClick = { selectedBook = book })
+                        }
+                    }
+                } else {
+                    // Book Details UI
+                    Column(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        val book = selectedBook!!
 
-                Spacer(modifier = Modifier.height(24.dp))
+                        Text(
+                            text = book.title ?: "Unknown Title",
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 22.sp,
+                            color = Color.White
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        val coverUrl =
+                            book.cover_i?.let { "https://covers.openlibrary.org/b/id/$it-M.jpg" }
+                        Image(
+                            painter = rememberImagePainter(data = coverUrl),
+                            contentDescription = book.title,
+                            modifier = Modifier.size(300.dp)
+                        )
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(text = "Author(s): ${book.author_name?.joinToString() ?: "Unknown"}",color = Color.White)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(text = "First Published: ${book.first_publish_year ?: "N/A"}",color = Color.White)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(text = "Review:",color = Color.White)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        var review by remember { mutableStateOf("") }
 
-                // Add to Library Button
-                Button(onClick = {
-//                    viewModel.addBookToDatabase(book)
-                    // Clear selection after adding the book
-                    selectedBook = null
-                }) {
-                    Text("Add to Library")
-                }
+                        OutlinedTextField(
+                            value = review,
+                            onValueChange = { review = it },
+                            label = {
+                                Text(
+                                    text = "Enter Review",
+                                    color = Color.Cyan // Custom label color
+                                )
+                            },
+                            colors = TextFieldDefaults.outlinedTextFieldColors(
+                                focusedLabelColor = Color.Cyan, // Color of label when focused
+                                unfocusedLabelColor = Color.Gray, // Color of label when unfocused
+                                focusedTextColor = Color.White, // Color of text when field is focused
+                                unfocusedTextColor = Color.White, // Color of text when field is not focused
+                                cursorColor = Color.Cyan, // Cursor color
+                                focusedBorderColor = Color.Cyan, // Focused border color
+                                unfocusedBorderColor = Color.Gray // Unfocused border color
+                            ),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(8.dp)
+                        )
+                        Spacer(modifier = Modifier.height(24.dp))
 
-                Spacer(modifier = Modifier.height(16.dp))
-
-                // Back button to return to search
-                Button(onClick = { selectedBook = null }) {
-                    Text("Back to Search")
+                        // Add to Library Button
+                        Button(onClick = {
+//                        viewModel.addBookToDatabase(book)
+                            // Clear selection after adding the book
+                            selectedBook = null
+                        }) {
+                            Text("Add to Library",color = Color.White)
+                        }
+                    }
                 }
             }
         }
     }
 }
-
 
 
 @Composable
@@ -275,9 +346,9 @@ fun BookItem(book: Book, onClick: (Book) -> Unit) {
         Spacer(modifier = Modifier.width(16.dp))
 
         Column(modifier = Modifier.align(Alignment.CenterVertically)) {
-            Text(text = book.title ?: "Unknown Title", fontWeight = FontWeight.Bold)
-            Text(text = "Author(s): ${book.author_name?.joinToString() ?: "Unknown"}")
-            Text(text = "First Published: ${book.first_publish_year ?: "N/A"}")
+            Text(text = book.title ?: "Unknown Title", fontWeight = FontWeight.Medium,color = Color.White)
+            Text(text = "Author(s): ${book.author_name?.joinToString() ?: "Unknown"}",color = Color.White)
+            Text(text = "First Published: ${book.first_publish_year ?: "N/A"}",color = Color.White)
         }
     }
 }
