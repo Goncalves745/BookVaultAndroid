@@ -221,9 +221,7 @@ fun AddBookScreen(navController: NavController, viewModel: BookViewModel = viewM
     ) { padding ->
         Box(
             modifier = Modifier
-                .fillMaxSize()
                 .background(Color(0xFF222831))
-                .padding(padding)
         ) {
             Column(
                 modifier = Modifier
@@ -286,8 +284,6 @@ fun AddBookScreen(navController: NavController, viewModel: BookViewModel = viewM
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(text = "Review:",color = Color.White)
                         Spacer(modifier = Modifier.height(8.dp))
-                        var review by remember { mutableStateOf("") }
-
                         OutlinedTextField(
                             value = review,
                             onValueChange = { review = it },
@@ -298,13 +294,13 @@ fun AddBookScreen(navController: NavController, viewModel: BookViewModel = viewM
                                 )
                             },
                             colors = TextFieldDefaults.outlinedTextFieldColors(
-                                focusedLabelColor = Color.Cyan, // Color of label when focused
-                                unfocusedLabelColor = Color.Gray, // Color of label when unfocused
+                                focusedLabelColor = Color.White, // Color of label when focused
+                                unfocusedLabelColor = Color.White, // Color of label when unfocused
                                 focusedTextColor = Color.White, // Color of text when field is focused
                                 unfocusedTextColor = Color.White, // Color of text when field is not focused
-                                cursorColor = Color.Cyan, // Cursor color
+                                cursorColor = Color.White, // Cursor color
                                 focusedBorderColor = Color.Cyan, // Focused border color
-                                unfocusedBorderColor = Color.Gray // Unfocused border color
+                                unfocusedBorderColor = Color.White // Unfocused border color
                             ),
                             modifier = Modifier
                                 .fillMaxWidth()
