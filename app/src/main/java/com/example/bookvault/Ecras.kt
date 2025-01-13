@@ -21,15 +21,19 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.lifecycle.viewmodel.compose.viewModel
 import coil.compose.rememberImagePainter
 import com.example.bookvault.network.Book
 import com.example.bookvault.viewmodel.BookViewModel
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.livedata.observeAsState
+import androidx.compose.ui.draw.clip
+import com.example.bookvault.BD.Livro
+import com.example.bookvault.BD.MainViewModel
 
 
-// App Bar for the Home Screen
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BookVaultAppBar() {
@@ -47,7 +51,6 @@ fun BookVaultAppBar() {
     )
 }
 
-// App Bar for Index Page (with Add and User buttons)
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BookVaultAppBarIndex(onAddBookClick: () -> Unit, onUserClick: () -> Unit) {
@@ -86,61 +89,166 @@ fun BookVaultAppBarIndex(onAddBookClick: () -> Unit, onUserClick: () -> Unit) {
     )
 }
 
-// Screen for Home Page
+
 @Composable
-fun HomePageScreen(onAddBookClick: () -> Unit, onUserClick: () -> Unit) {
-    Column(modifier = Modifier.fillMaxSize().background(Color(0xFF222831))) {
+fun BooksScreen(viewModel: MainViewModel = viewModel(), onAddBookClick: () -> Unit, onUserClick: () -> Unit) {
+    val books by viewModel.allLivros.observeAsState(emptyList())
+    var showDialog by remember { mutableStateOf(false) }
+    var bookToDelete by remember { mutableStateOf<Livro?>(null) }
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF222831))
+    ) {
         BookVaultAppBarIndex(onAddBookClick = onAddBookClick, onUserClick = onUserClick)
-        Column(modifier = Modifier.fillMaxSize().wrapContentSize(Alignment.Center)) {
-            Text(
-                text = stringResource(id = R.string.HomePage),
-                fontWeight = FontWeight.Bold,
-                color = Color.Gray,
-                modifier = Modifier.align(Alignment.CenterHorizontally),
-                textAlign = TextAlign.Center,
-                fontSize = 18.sp
+
+        if (books.isEmpty()) {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .wrapContentSize(Alignment.Center)
+            ) {
+                Text(
+                    text = "No books available in the library",
+                    fontWeight = FontWeight.Bold,
+                    color = Color.Gray,
+                    textAlign = TextAlign.Center,
+                    fontSize = 18.sp
+                )
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+            ) {
+                items(books) { book ->
+                    BookItem(book = book) {
+                        showDialog = true
+                        bookToDelete = book
+                    }
+                }
+            }
+        }
+
+        if (showDialog && bookToDelete != null) {
+            AlertDialog(
+                onDismissRequest = { showDialog = false },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            bookToDelete?.let { viewModel.deleteLivro(it) }
+                            showDialog = false
+                        }
+                    ) {
+                        Text("Delete")
+                    }
+                },
+                dismissButton = {
+                    Button(onClick = { showDialog = false }) {
+                        Text("Cancel")
+                    }
+                },
+                title = { Text("Delete Book") },
+                text = { Text("Are you sure you want to delete this book?") }
             )
         }
     }
 }
 
-// Screen for Books Page
 @Composable
-fun BooksScreen() {
-    Column(modifier = Modifier.fillMaxSize().background(Color(0xFF222831))) {
-        BookVaultAppBar()
-        Column(modifier = Modifier.fillMaxSize().wrapContentSize(Alignment.Center)) {
-            Text(
-                text = stringResource(id = R.string.Books),
-                fontWeight = FontWeight.Bold,
-                color = Color.Gray,
-                modifier = Modifier.align(Alignment.CenterHorizontally),
-                textAlign = TextAlign.Center,
-                fontSize = 18.sp
+fun BookItem(book: Livro, onDeleteRequest: () -> Unit) {
+    Row(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(8.dp)
+            .background(Color(0xFF393E46), shape = RoundedCornerShape(8.dp))
+            .clickable { onDeleteRequest() }
+            .padding(16.dp)
+    ) {
+        book.capaUrl?.let { coverUrl ->
+            Image(
+                painter = rememberImagePainter(data = coverUrl),
+                contentDescription = book.nomeLivro,
+                modifier = Modifier
+                    .size(100.dp)
+                    .clip(RoundedCornerShape(8.dp))
             )
+        }
+
+        Spacer(modifier = Modifier.width(16.dp))
+
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(end = 16.dp)
+        ) {
+            Text(
+                text = book.nomeLivro,
+                fontWeight = FontWeight.Bold,
+                fontSize = 20.sp,
+                color = Color.White
+            )
+            Spacer(modifier = Modifier.height(4.dp))
+            book.autor?.let {
+                Text(
+                    text = "Author: $it",
+                    fontSize = 16.sp,
+                    color = Color.Gray
+                )
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+            book.anoPublicacao?.let {
+                Text(
+                    text = "Published: $it",
+                    fontSize = 16.sp,
+                    color = Color.Gray
+                )
+            }
+            Spacer(modifier = Modifier.height(4.dp))
+            book.avaliacao?.let {
+                Text(
+                    text = "Review: $it",
+                    fontSize = 16.sp,
+                    color = Color.Gray
+                )
+            }
         }
     }
 }
 
-// Screen for Settings Page
 @Composable
-fun SettingsScreen() {
-    Column(modifier = Modifier.fillMaxSize().background(Color(0xFF222831))) {
-        BookVaultAppBar()
-        Column(modifier = Modifier.fillMaxSize().wrapContentSize(Alignment.Center)) {
-            Text(
-                text = stringResource(id = R.string.Settings),
-                fontWeight = FontWeight.Bold,
-                color = Color.Gray,
-                modifier = Modifier.align(Alignment.CenterHorizontally),
-                textAlign = TextAlign.Center,
-                fontSize = 18.sp
-            )
+fun SettingsScreen(onAddBookClick: () -> Unit, onUserClick: () -> Unit,viewModel: MainViewModel = viewModel()) {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color(0xFF222831))
+            .padding(16.dp)
+    ) {
+        BookVaultAppBarIndex(onAddBookClick = onAddBookClick, onUserClick = onUserClick)
+
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .wrapContentSize(Alignment.Center)
+        ) {
+
+            Button(
+                onClick = {
+                    viewModel.deleteAllBooks()
+                },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Red
+                ),
+                modifier = Modifier.align(Alignment.CenterHorizontally)
+            ) {
+                Text("Delete All Books", color = Color.White)
+            }
         }
     }
 }
 
-// User Screen with Back Button
 @Composable
 fun UserScreen(navController: NavController) {
     Box(modifier = Modifier.fillMaxSize()) {
@@ -167,9 +275,9 @@ fun UserScreen(navController: NavController) {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class) // or ExperimentalMaterialApi, depending on the API you're using
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun AddBookScreen(navController: NavController, viewModel: BookViewModel = viewModel()) {
+fun AddBookScreen(navController: NavController, viewModel: BookViewModel = viewModel(),livroViewModel : MainViewModel = viewModel()) {
     var query by remember { mutableStateOf("") }
     val books by viewModel.books.collectAsState()
     var selectedBook by remember { mutableStateOf<Book?>(null) }
@@ -181,8 +289,8 @@ fun AddBookScreen(navController: NavController, viewModel: BookViewModel = viewM
                 TopAppBar(
                     title = {
                         Text(
-                            text = "Book Details",
-                            color = Color.White // Set the desired color here
+                            text = "Search Books",
+                            color = Color.White
                         )
                     },
                     navigationIcon = {
@@ -190,30 +298,33 @@ fun AddBookScreen(navController: NavController, viewModel: BookViewModel = viewM
                             Icon(
                                 imageVector = Icons.Default.ArrowBack,
                                 contentDescription = "Back to Search",
-                                tint = Color.White // Set the icon color to white
+                                tint = Color.White
                             )
                         }
                     },
-                    colors = TopAppBarDefaults.smallTopAppBarColors(
-                        containerColor = Color(0xFF222831) // Set your desired background color
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color(0xFF222831)
                     )
                 )
             } else {
                 TopAppBar(
                     title = {
-                        Text(text = "Search Books", color = Color.White)
+                        Text(
+                            text = "Search Books",
+                            color = Color.White
+                        )
                     },
                     navigationIcon = {
                         IconButton(onClick = { navController.popBackStack() }) {
                             Icon(
                                 imageVector = Icons.Default.ArrowBack,
                                 contentDescription = "Back to Search",
-                                tint = Color.White // Set the icon color to white
+                                tint = Color.White
                             )
                         }
                     },
-                    colors = TopAppBarDefaults.smallTopAppBarColors(
-                        containerColor = Color(0xFF222831) // Set your desired background color
+                    colors = TopAppBarDefaults.topAppBarColors(
+                        containerColor = Color(0xFF222831)
                     )
                 )
             }
@@ -230,7 +341,6 @@ fun AddBookScreen(navController: NavController, viewModel: BookViewModel = viewM
                     .padding(16.dp)
             ) {
                 if (selectedBook == null) {
-                    // Search UI
                     TextField(
                         value = query,
                         onValueChange = { query = it },
@@ -247,14 +357,12 @@ fun AddBookScreen(navController: NavController, viewModel: BookViewModel = viewM
                     }
                     Spacer(modifier = Modifier.height(16.dp))
 
-                    // List of books
                     LazyColumn {
                         items(books) { book ->
                             BookItem(book = book, onClick = { selectedBook = book })
                         }
                     }
                 } else {
-                    // Book Details UI
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
@@ -290,17 +398,16 @@ fun AddBookScreen(navController: NavController, viewModel: BookViewModel = viewM
                             label = {
                                 Text(
                                     text = "Enter Review",
-                                    color = Color.Cyan // Custom label color
+                                    color = Color.Cyan
                                 )
                             },
-                            colors = TextFieldDefaults.outlinedTextFieldColors(
-                                focusedLabelColor = Color.White, // Color of label when focused
-                                unfocusedLabelColor = Color.White, // Color of label when unfocused
-                                focusedTextColor = Color.White, // Color of text when field is focused
-                                unfocusedTextColor = Color.White, // Color of text when field is not focused
-                                cursorColor = Color.White, // Cursor color
-                                focusedBorderColor = Color.Cyan, // Focused border color
-                                unfocusedBorderColor = Color.White // Unfocused border color
+                            colors = TextFieldDefaults.colors(
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White,
+                                focusedContainerColor = Color.Transparent,
+                                unfocusedContainerColor = Color.Transparent,
+                                focusedIndicatorColor = Color.Cyan,
+                                unfocusedIndicatorColor = Color.White
                             ),
                             modifier = Modifier
                                 .fillMaxWidth()
@@ -308,13 +415,41 @@ fun AddBookScreen(navController: NavController, viewModel: BookViewModel = viewM
                         )
                         Spacer(modifier = Modifier.height(24.dp))
 
-                        // Add to Library Button
                         Button(onClick = {
-//                        viewModel.addBookToDatabase(book)
-                            // Clear selection after adding the book
-                            selectedBook = null
+                            selectedBook?.let { book ->
+                                val livro = Livro(
+                                    nomeLivro = book.title ?: "Unknown Title",
+                                    autor = book.author_name?.joinToString(),
+                                    anoPublicacao = book.first_publish_year,
+                                    capaUrl = book.cover_i?.let { "https://covers.openlibrary.org/b/id/$it-M.jpg" },
+                                    avaliacao = review
+                                )
+                                livroViewModel.insertLivro(livro)
+                                selectedBook = null
+                                review = ""
+                            }
                         }) {
-                            Text("Add to Library",color = Color.White)
+                            Button(
+                                onClick = {
+                                    selectedBook?.let { book ->
+                                        val livro = Livro(
+                                            nomeLivro = book.title ?: "Unknown Title",
+                                            autor = book.author_name?.joinToString(),
+                                            anoPublicacao = book.first_publish_year,
+                                            capaUrl = book.cover_i?.let { "https://covers.openlibrary.org/b/id/$it-M.jpg" },
+                                            avaliacao = review
+                                        )
+                                        livroViewModel.insertLivro(livro)
+                                        selectedBook = null
+                                        review = ""
+                                    }
+                                },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(8.dp)
+                            ) {
+                                Text("Add to Library", color = Color.White)
+                            }
                         }
                     }
                 }
@@ -330,7 +465,7 @@ fun BookItem(book: Book, onClick: (Book) -> Unit) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(8.dp)
-            .clickable { onClick(book) } // Trigger navigation when clicked
+            .clickable { onClick(book) }
     ) {
         val coverUrl = book.cover_i?.let { "https://covers.openlibrary.org/b/id/$it-M.jpg" }
         Image(
