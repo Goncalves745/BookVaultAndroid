@@ -1,36 +1,31 @@
-# BookVaultAndroid
+# 📚 BookVaultAndroid
 
-Uma aplicação de tracking de livros
+**BookVaultAndroid** is a mobile application for book tracking, allowing users to search, add, and view details about their favorite reads. Perfect for readers who want to organize and manage their book collections efficiently.
 
-## Funcionalidades
-- Pesquisa de livros por nome.
-- Adição e remoção de livros.
-- Visualização de detalhes como autor, data de publicação e capa.
+---
 
-## Tecnologias Utilizadas
-- **Android Studio**: Para desenvolvimento do aplicativo.
-- **Kotlin**: Linguagem de programação.
-- **OpenLibrary API**: Para obtenção de dados sobre livros.
+## 🎯 Features
+- 🔍 **Book Search**: Search for books by name using the OpenLibrary API.
+- ➕ **Add/Remove Books**: Easily manage your book collection.
+- 📖 **View Book Details**: See information like author, publication date, and book cover.
 
-## Requisitos Cumpridos
-- Pesquisa de livros por nome.
-- Adição e remoção de livros.
-- Exibição de detalhes como autor, data de publicação e capa.
+---
 
-## Requisitos Pendentes
-- Modo claro e escuro.
-- Autenticação de usuários.
-- Página de detalhes para livros.
+## 🛠️ Technologies Used
+- **Android Studio**: Development environment for building Android applications.
+- **Kotlin**: Primary programming language for the project.
+- **OpenLibrary API**: Source for fetching book data.
 
-## Como Usar
-1. Clone este repositório.
-2. Abra o projeto no Android Studio.
-3. Compile e execute no emulador ou dispositivo físico.
+---
 
-## Melhorias Futuras
-- Implementação de autenticação.
-- Suporte a temas (claro/escuro).
-- Página de detalhes para cada livro.
+## 🚧 Pending Features
+- 🌗 Support for **light and dark modes**.
+- 🔒 **User authentication** for personalized collections.
+- 📋 **Detailed book page** with extended information.
 
-## Autor
-Desenvolvido por Diogo Soares Gonçalves
+---
+
+## 🚀 How to Use
+1. Clone this repository:
+   ```bash
+   git clone https://github.com/Goncalves745/BookVaultAndroid.git
